@@ -566,12 +566,12 @@ export default function MyxBeerDashboard() {
         <a href="#" className="myx-footer-terms" onClick={(e) => e.preventDefault()}>
           Termos de Uso e Privacidade
         </a>
-        <p className="myx-footer-dev">
-          Desenvolvida por:{' '}
+        <div className="myx-footer-dev">
+          <span className="myx-footer-dev-label">Desenvolvida por</span>
           <a href="https://www.marketelli.com" target="_blank" rel="noopener noreferrer" className="myx-footer-dev-link">
-            www.marketelli.com
+            🌐 WWW.MARKETELLI.COM
           </a>
-        </p>
+        </div>
       </footer>
     </div>
   )
