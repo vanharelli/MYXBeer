@@ -1,6 +1,6 @@
 import './App.css'
 import { useState, useEffect } from 'react'
-import { Instagram, MapPin, ShoppingCart, X } from 'lucide-react'
+import { Instagram, MapPin, ShoppingCart, X, ChevronDown } from 'lucide-react'
 import { Background } from './components/Background'
 import {
   combosEspeciais,
@@ -241,6 +241,9 @@ export default function MyxBeerDashboard() {
           Peça agora e receba onde estiver.
         </p>
         <div className="myx-hero-indicator" />
+        <div className="myx-scroll-arrow" aria-hidden>
+          <ChevronDown size={22} strokeWidth={2.5} />
+        </div>
       </section>
 
       {/* ── VERTICAL CARD LIST ── */}
@@ -283,20 +286,20 @@ export default function MyxBeerDashboard() {
         </div>
       </div>
 
-      {/* ── FLOATING CART ── */}
-      <button
-        className="myx-floating-cart"
-        aria-label={`Abrir carrinho${cartTotal > 0 ? ` — ${cartTotal} ${cartTotal === 1 ? 'item' : 'itens'}` : ''}`}
-        onClick={() => { setIsCartOpen(true); setCheckoutStatus('idle') }}
-      >
-        <ShoppingCart size={20} />
-        <span>Carrinho</span>
-        {cartTotal > 0 && (
+      {/* ── FLOATING CART — only visible when cart has items ── */}
+      {cartTotal > 0 && (
+        <button
+          className="myx-floating-cart"
+          aria-label={`Abrir carrinho — ${cartTotal} ${cartTotal === 1 ? 'item' : 'itens'}`}
+          onClick={() => { setIsCartOpen(true); setCheckoutStatus('idle') }}
+        >
+          <ShoppingCart size={20} />
+          <span>Carrinho</span>
           <span className="myx-cart-badge" aria-label={`${cartTotal} itens`}>
             {cartTotal}
           </span>
-        )}
-      </button>
+        </button>
+      )}
 
       {/* ── CART DRAWER ── */}
       {isCartOpen && (

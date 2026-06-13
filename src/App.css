@@ -715,7 +715,8 @@ html, body {
 
 .myx-floating-cart {
   position: fixed;
-  right: 16px;
+  left: 50%;
+  transform: translateX(-50%);
   bottom: 16px;
   z-index: 200;
   display: inline-flex;
@@ -1189,6 +1190,23 @@ html, body {
   border-radius: 2px;
 }
 
+.myx-scroll-arrow {
+  margin: 14px auto 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.55;
+  animation: myx-bounce 1.8s ease-in-out infinite;
+}
+.myx-scroll-arrow svg {
+  color: #D4AF37;
+}
+@keyframes myx-bounce {
+  0%, 100% { transform: translateY(0); opacity: 0.55; }
+  50%       { transform: translateY(6px); opacity: 0.9; }
+}
+
 /* ── TABLET ──────────────────────────────────── */
 @media (max-width: 1024px) {
   .product-card {
@@ -1268,15 +1286,11 @@ html, body {
   }
 
   .myx-floating-cart {
-    right: 12px;
+    left: 50%;
+    transform: translateX(-50%);
     bottom: 16px;
     padding: 9px 14px;
   }
-}
-
-/* Hide download text only on very small phones */
-@media (max-width: 480px) {
-  .myx-download-text { display: none; }
 }
 
 @media (max-width: 380px) {
