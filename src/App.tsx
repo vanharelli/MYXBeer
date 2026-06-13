@@ -1,5 +1,5 @@
 import './App.css'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Instagram, MapPin, ShoppingCart, X } from 'lucide-react'
 import { Background } from './components/Background'
 import {
@@ -95,35 +95,25 @@ function getProdutosByCat(catId: number): Produto[] {
 export default function MyxBeerDashboard() {
   const [panel, setPanel] = useState<PanelMode>({ type: 'none' })
   const [isCartOpen, setIsCartOpen] = useState(false)
-  const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [showSchedule, setShowSchedule] = useState(false)
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [checkoutStatus, setCheckoutStatus] = useState<'idle' | 'success'>('idle')
   const [comboTab, setComboTab] = useState('Todos')
-  const scrollRef = useRef<HTMLDivElement | null>(null)
-
-  const scrollByAmount = 320
-  const minScrollToShowLeft = 40
-
-  const handleScrollRight = () => {
-    scrollRef.current?.scrollBy({ left: scrollByAmount, behavior: 'smooth' })
-  }
-  const handleScrollLeft = () => {
-    scrollRef.current?.scrollBy({ left: -scrollByAmount, behavior: 'smooth' })
-  }
-  const handleScroll = () => {
-    if (!scrollRef.current) return
-    setCanScrollLeft(scrollRef.current.scrollLeft > minScrollToShowLeft)
-  }
+  const [scrolled, setScrolled] = useState(false)
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null)
 
   const closePanel = () => setPanel({ type: 'none' })
 
+  // Header becomes visible on scroll
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   const handleCategoryClick = (catId: number) => {
-    if (catId === 6) {
-      setPanel({ type: 'combo' })
-    } else {
-      setPanel({ type: 'products', catId })
-    }
+    if (catId === 6) setPanel({ type: 'combo' })
+    else setPanel({ type: 'products', catId })
   }
 
   const handleAddComboToCart = (combo: Combo) => {
@@ -165,13 +155,12 @@ export default function MyxBeerDashboard() {
   }
 
   const isOpenNow = isEstablishmentOpenNow()
-
   const filteredCombos =
-    comboTab === 'Todos'
-      ? combosEspeciais
-      : combosEspeciais.filter((c) => c.categoria === comboTab)
-
+    comboTab === 'Todos' ? combosEspeciais : combosEspeciais.filter((c) => c.categoria === comboTab)
   const cartTotal = cartItems.reduce((acc, item) => acc + item.quantity, 0)
+
+  const currentCat = panel.type === 'products' ? CATEGORIAS.find((c) => c.id === panel.catId) : null
+  const currentProdutos = panel.type === 'products' ? getProdutosByCat(panel.catId) : []
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -186,9 +175,7 @@ export default function MyxBeerDashboard() {
       }
       if (event.key === 'Escape') closePanel()
     }
-    const handleContextMenu = (event: MouseEvent) => {
-      event.preventDefault()
-    }
+    const handleContextMenu = (event: MouseEvent) => event.preventDefault()
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('contextmenu', handleContextMenu)
     return () => {
@@ -197,36 +184,12 @@ export default function MyxBeerDashboard() {
     }
   }, [])
 
-  const currentCat = panel.type === 'products'
-    ? CATEGORIAS.find((c) => c.id === panel.catId)
-    : null
-  const currentProdutos = panel.type === 'products' ? getProdutosByCat(panel.catId) : []
-
   return (
     <div className="myx-root">
       <Background opacity={0.8} />
 
-      {/* ── HEADER ── */}
-      <header className="myx-header">
-        <div className="myx-header-status">
-          <button
-            type="button"
-            className={`myx-status-badge ${isOpenNow ? 'myx-status-open' : 'myx-status-closed'}`}
-            onClick={() => setShowSchedule((prev) => !prev)}
-          >
-            <span className="myx-status-label">
-              {isOpenNow ? 'Aberto agora' : 'Fechado no momento'}
-            </span>
-          </button>
-          {showSchedule && (
-            <div className="myx-status-panel">
-              <div className="myx-status-panel-row">Domingo: 08:00–00:00</div>
-              <div className="myx-status-panel-row">Seg–Qui: 08:00–00:00</div>
-              <div className="myx-status-panel-row">Sex–Sáb: 08:00–01:00</div>
-              <div className="myx-status-panel-note">Horários podem variar em feriados</div>
-            </div>
-          )}
-        </div>
+      {/* ── HEADER — transparent at top, solid on scroll ── */}
+      <header className={`myx-header ${scrolled ? 'myx-header-scrolled' : 'myx-header-top'}`}>
         <div className="myx-download">
           <span className="myx-download-emoji" aria-hidden>📱</span>
           <span className="myx-download-text">Baixar o app</span>
@@ -243,13 +206,34 @@ export default function MyxBeerDashboard() {
 
       {/* ── HERO ── */}
       <section className="myx-hero-pro">
+
+        {/* Status badge — below header, above logo */}
+        <div className="myx-status-wrap">
+          <button
+            type="button"
+            className={`myx-status-badge ${isOpenNow ? 'myx-status-open' : 'myx-status-closed'}`}
+            onClick={() => setShowSchedule((prev) => !prev)}
+          >
+            <span className="myx-status-dot" />
+            <span className="myx-status-label">
+              {isOpenNow ? 'Aberto agora' : 'Fechado no momento'}
+            </span>
+          </button>
+          {showSchedule && (
+            <div className="myx-status-panel">
+              <div className="myx-status-panel-row">Domingo: 08:00–00:00</div>
+              <div className="myx-status-panel-row">Seg–Qui: 08:00–00:00</div>
+              <div className="myx-status-panel-row">Sex–Sáb: 08:00–01:00</div>
+              <div className="myx-status-panel-note">Horários podem variar em feriados</div>
+            </div>
+          )}
+        </div>
+
         <img
           src="/LOGOMYX.PNG"
           alt="MYX BEER"
           className="myx-hero-logo"
-          onError={(e) => {
-            e.currentTarget.src = '/LOGOMYX.PNG.png'
-          }}
+          onError={(e) => { e.currentTarget.src = '/LOGOMYX.PNG.png' }}
         />
         <p className="myx-hero-tagline">DISTRIBUIDORA E TABACARIA</p>
         <p className="myx-hero-sub-pro">
@@ -259,63 +243,51 @@ export default function MyxBeerDashboard() {
         <div className="myx-hero-indicator" />
       </section>
 
-      {/* ── CATEGORY CARDS ── */}
+      {/* ── VERTICAL CARD LIST ── */}
       <div className="myx-module">
-        <main ref={scrollRef} className="netflix-horizontal-container" onScroll={handleScroll}>
-          {CATEGORIAS.map((c) => (
-            <div key={c.id} className="myx-card product-card">
-              {c.img && (
-                <>
-                  <img src={c.img} alt={c.title} className="myx-card-bg" />
-                  <div className="myx-card-bg-overlay" />
-                </>
-              )}
-              <div className="myx-card-content">
-                <div className="myx-card-quality">
-                  <span className="myx-card-quality-bar" />
-                  <h3 className="myx-card-title">{c.title}</h3>
-                </div>
-                <p className="myx-card-profile">{c.profile}</p>
-                <div className="myx-card-footer">
-                  <button
-                    className="myx-button pill-button"
-                    onClick={() => handleCategoryClick(c.id)}
-                  >
-                    Ver opções 🛒
-                  </button>
+        <div className="myx-vertical-list">
+          {CATEGORIAS.map((c) => {
+            const isHovered = hoveredCard === c.id
+            const anyHovered = hoveredCard !== null
+            return (
+              <div
+                key={c.id}
+                className={`myx-card myx-vcard ${anyHovered && !isHovered ? 'myx-vcard-blurred' : ''} ${isHovered ? 'myx-vcard-focused' : ''}`}
+                onMouseEnter={() => setHoveredCard(c.id)}
+                onMouseLeave={() => setHoveredCard(null)}
+              >
+                {c.img && (
+                  <>
+                    <img src={c.img} alt={c.title} className="myx-card-bg" />
+                    <div className="myx-card-bg-overlay" />
+                  </>
+                )}
+                <div className="myx-vcard-content">
+                  <div className="myx-card-quality">
+                    <span className="myx-card-quality-bar" />
+                    <h3 className="myx-card-title">{c.title}</h3>
+                  </div>
+                  <p className="myx-card-profile">{c.profile}</p>
+                  <div className="myx-vcard-footer">
+                    <button
+                      className="myx-button pill-button"
+                      onClick={() => handleCategoryClick(c.id)}
+                    >
+                      Ver opções 🛒
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </main>
-        {canScrollLeft && (
-          <button
-            className="myx-scroll-hint myx-scroll-hint-left"
-            type="button"
-            onClick={handleScrollLeft}
-            aria-label="Rolar para a esquerda"
-          >
-            <span className="myx-scroll-hint-arrow">‹</span>
-          </button>
-        )}
-        <button
-          className="myx-scroll-hint myx-scroll-hint-right"
-          type="button"
-          onClick={handleScrollRight}
-          aria-label="Rolar para a direita"
-        >
-          <span className="myx-scroll-hint-arrow">›</span>
-        </button>
+            )
+          })}
+        </div>
       </div>
 
       {/* ── FLOATING CART ── */}
       <button
         className="myx-floating-cart"
         aria-label="Abrir carrinho"
-        onClick={() => {
-          setIsCartOpen(true)
-          setCheckoutStatus('idle')
-        }}
+        onClick={() => { setIsCartOpen(true); setCheckoutStatus('idle') }}
       >
         <ShoppingCart size={20} />
         <span>Carrinho</span>
@@ -329,9 +301,7 @@ export default function MyxBeerDashboard() {
           <aside className="myx-cart-drawer">
             <header className="myx-cart-header">
               <span>Carrinho</span>
-              <button className="myx-cart-close" onClick={() => setIsCartOpen(false)}>
-                <X size={18} />
-              </button>
+              <button className="myx-cart-close" onClick={() => setIsCartOpen(false)}><X size={18} /></button>
             </header>
             <div className="myx-cart-body">
               {!cartItems.length && checkoutStatus === 'idle' && (
@@ -346,26 +316,16 @@ export default function MyxBeerDashboard() {
                     {cartItems.map((item) => (
                       <li key={item.title} className="myx-cart-item">
                         <div className="myx-cart-item-main">
-                          <span className="myx-cart-item-title">
-                            {item.quantity}x {item.title}
-                          </span>
+                          <span className="myx-cart-item-title">{item.quantity}x {item.title}</span>
                           <p className="myx-cart-item-description">{item.description}</p>
                         </div>
-                        <button
-                          className="myx-cart-remove"
-                          onClick={() => handleRemoveFromCart(item.title)}
-                          aria-label={`Remover ${item.title}`}
-                        >
+                        <button className="myx-cart-remove" onClick={() => handleRemoveFromCart(item.title)} aria-label={`Remover ${item.title}`}>
                           <X size={14} />
                         </button>
                       </li>
                     ))}
                   </ul>
-                  <button
-                    type="button"
-                    className="myx-button myx-cart-checkout"
-                    onClick={handleCheckout}
-                  >
+                  <button type="button" className="myx-button myx-cart-checkout" onClick={handleCheckout}>
                     Finalizar pedido via WhatsApp 📲
                   </button>
                 </>
@@ -385,24 +345,15 @@ export default function MyxBeerDashboard() {
                 <span className="myx-panel-title">🍻 Combos Exclusivos</span>
                 <p className="myx-panel-subtitle">Nomes criativos, combinações perfeitas</p>
               </div>
-              <button className="myx-cart-close" onClick={closePanel}>
-                <X size={18} />
-              </button>
+              <button className="myx-cart-close" onClick={closePanel}><X size={18} /></button>
             </header>
-
-            {/* Category tabs */}
             <div className="myx-combo-tabs">
               {COMBO_CATEGORIAS.map((cat) => (
-                <button
-                  key={cat}
-                  className={`myx-combo-tab ${comboTab === cat ? 'active' : ''}`}
-                  onClick={() => setComboTab(cat)}
-                >
+                <button key={cat} className={`myx-combo-tab ${comboTab === cat ? 'active' : ''}`} onClick={() => setComboTab(cat)}>
                   {cat}
                 </button>
               ))}
             </div>
-
             <div className="myx-combo-body">
               <ul className="myx-combo-list">
                 {filteredCombos.map((combo) => (
@@ -416,15 +367,9 @@ export default function MyxBeerDashboard() {
                     </div>
                     <p className="myx-combo-description">{combo.profile}</p>
                     <ul className="myx-combo-items-list">
-                      {combo.items.map((item) => (
-                        <li key={item}>• {item}</li>
-                      ))}
+                      {combo.items.map((item) => <li key={item}>• {item}</li>)}
                     </ul>
-                    <button
-                      type="button"
-                      className="myx-button pill-button myx-combo-add"
-                      onClick={() => handleAddComboToCart(combo)}
-                    >
+                    <button type="button" className="myx-button pill-button myx-combo-add" onClick={() => handleAddComboToCart(combo)}>
                       Adicionar ao carrinho 🛒
                     </button>
                   </li>
@@ -445,9 +390,7 @@ export default function MyxBeerDashboard() {
                 <span className="myx-panel-title">{currentCat.title}</span>
                 <p className="myx-panel-subtitle">{currentCat.profile}</p>
               </div>
-              <button className="myx-cart-close" onClick={closePanel}>
-                <X size={18} />
-              </button>
+              <button className="myx-cart-close" onClick={closePanel}><X size={18} /></button>
             </header>
             <div className="myx-combo-body">
               {currentProdutos.length === 0 ? (
@@ -466,11 +409,7 @@ export default function MyxBeerDashboard() {
                           <span className="myx-combo-cat-pill">{produto.categoria}</span>
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        className="myx-button pill-button myx-produto-add"
-                        onClick={() => handleAddProdutoToCart(produto)}
-                      >
+                      <button type="button" className="myx-button pill-button myx-produto-add" onClick={() => handleAddProdutoToCart(produto)}>
                         + Adicionar
                       </button>
                     </li>
