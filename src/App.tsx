@@ -286,12 +286,16 @@ export default function MyxBeerDashboard() {
       {/* ── FLOATING CART ── */}
       <button
         className="myx-floating-cart"
-        aria-label="Abrir carrinho"
+        aria-label={`Abrir carrinho${cartTotal > 0 ? ` — ${cartTotal} ${cartTotal === 1 ? 'item' : 'itens'}` : ''}`}
         onClick={() => { setIsCartOpen(true); setCheckoutStatus('idle') }}
       >
         <ShoppingCart size={20} />
         <span>Carrinho</span>
-        {cartTotal > 0 && <span className="myx-cart-badge">{cartTotal}</span>}
+        {cartTotal > 0 && (
+          <span className="myx-cart-badge" aria-label={`${cartTotal} itens`}>
+            {cartTotal}
+          </span>
+        )}
       </button>
 
       {/* ── CART DRAWER ── */}
