@@ -561,7 +561,18 @@ export default function MyxBeerDashboard() {
         </>
       )}
 
-      <footer className="myx-footer">MYX BEER © 2026 — Distribuidora e Tabacaria · Bebidas geladas na sua porta</footer>
+      <footer className="myx-footer">
+        <p className="myx-footer-brand">MYX BEER © 2026 — Distribuidora e Tabacaria · Bebidas geladas na sua porta</p>
+        <a href="#" className="myx-footer-terms" onClick={(e) => e.preventDefault()}>
+          Termos de Uso e Privacidade
+        </a>
+        <p className="myx-footer-dev">
+          Desenvolvida por:{' '}
+          <a href="https://www.marketelli.com" target="_blank" rel="noopener noreferrer" className="myx-footer-dev-link">
+            www.marketelli.com
+          </a>
+        </p>
+      </footer>
     </div>
   )
 }

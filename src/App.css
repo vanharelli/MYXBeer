@@ -1134,13 +1134,46 @@ html, body {
 
 .myx-footer {
   border-top: 1px solid rgba(192, 192, 192, 0.1);
-  padding: 40px;
+  padding: 40px 20px;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.myx-footer-brand {
+  margin: 0;
   opacity: 0.3;
   text-transform: uppercase;
   letter-spacing: 0.3em;
   font-size: 10px;
 }
+.myx-footer-terms {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #D4AF37;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  opacity: 0.75;
+  transition: opacity 200ms;
+}
+.myx-footer-terms:hover { opacity: 1; }
+.myx-footer-dev {
+  margin: 0;
+  font-size: 10px;
+  color: #6b7280;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.myx-footer-dev-link {
+  color: #9ca3af;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 200ms;
+}
+.myx-footer-dev-link:hover { color: #D4AF37; }
  
 .myx-hero-pro {
   position: relative;
