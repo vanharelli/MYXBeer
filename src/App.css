@@ -1168,10 +1168,22 @@ html, body {
   width: auto;
   display: block;
   margin: 0 auto 12px;
+  position: relative;
   transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  animation: myx-logo-glow 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.45)) drop-shadow(0 0 28px rgba(212, 175, 55, 0.2));
 }
 .myx-hero-logo:hover {
   transform: scale(1.04);
+  animation-play-state: paused;
+  filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.8)) drop-shadow(0 0 48px rgba(212, 175, 55, 0.45)) brightness(1.15);
+}
+@keyframes myx-logo-glow {
+  0%   { filter: drop-shadow(0 0 8px rgba(212,175,55,0.3))  drop-shadow(0 0 18px rgba(212,175,55,0.1))  brightness(1);    }
+  40%  { filter: drop-shadow(0 0 18px rgba(212,175,55,0.7)) drop-shadow(0 0 40px rgba(212,175,55,0.35)) brightness(1.12); }
+  55%  { filter: drop-shadow(0 0 24px rgba(255,235,120,0.9)) drop-shadow(0 0 56px rgba(212,175,55,0.5)) brightness(1.22); }
+  70%  { filter: drop-shadow(0 0 18px rgba(212,175,55,0.7)) drop-shadow(0 0 40px rgba(212,175,55,0.35)) brightness(1.12); }
+  100% { filter: drop-shadow(0 0 8px rgba(212,175,55,0.3))  drop-shadow(0 0 18px rgba(212,175,55,0.1))  brightness(1);    }
 }
 .myx-hero-sub-pro {
   color: #d1d5db;
