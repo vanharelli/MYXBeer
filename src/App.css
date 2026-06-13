@@ -1162,18 +1162,32 @@ html, body {
 .myx-footer-terms:hover { opacity: 1; }
 .myx-footer-dev {
   margin: 0;
-  font-size: 10px;
-  color: #6b7280;
-  letter-spacing: 0.06em;
+  font-size: 11px;
+  color: #9ca3af;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  font-weight: 500;
 }
 .myx-footer-dev-link {
-  color: #9ca3af;
+  display: inline-block;
   text-decoration: none;
-  font-weight: 600;
-  transition: color 200ms;
+  font-weight: 900;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  background: linear-gradient(90deg, #b8860b, #D4AF37, #ffe87c, #D4AF37, #b8860b);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: myx-dev-shimmer 2.8s linear infinite;
+  text-shadow: none;
+  transition: opacity 200ms;
 }
-.myx-footer-dev-link:hover { color: #D4AF37; }
+.myx-footer-dev-link:hover { opacity: 0.8; }
+@keyframes myx-dev-shimmer {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
  
 .myx-hero-pro {
   position: relative;
