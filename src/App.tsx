@@ -1,6 +1,6 @@
 import './App.css'
 import { useState, useEffect } from 'react'
-import { Instagram, MapPin, ShoppingCart, X, ChevronDown } from 'lucide-react'
+import { Instagram, MapPin, ShoppingCart, X, ChevronDown, Smartphone, Navigation } from 'lucide-react'
 import { Background } from './components/Background'
 import {
   combosEspeciais,
@@ -41,6 +41,43 @@ type PanelMode =
   | { type: 'none' }
   | { type: 'combo' }
   | { type: 'products'; catId: number }
+
+const STORES = [
+  {
+    id: 1,
+    name: 'MYX BEER 3ª AVENIDA',
+    emoji: '🍺',
+    lat: -15.8688465,
+    lng: -47.9642211,
+    maps: 'https://www.google.com/maps/place/MYX+BEER+3%C2%B0+AVENIDA/@-15.8400434,-47.9821825,13z/data=!4m10!1m2!2m1!1smyxbeer!3m6!1s0x935a2f48c928c7f5:0x1a0de44b42809402!8m2!3d-15.8688465!4d-47.9642211',
+  },
+  {
+    id: 2,
+    name: 'MYX BEER METROPOLITANA',
+    emoji: '🏪',
+    lat: -15.8800288,
+    lng: -47.97425,
+    maps: 'https://www.google.com/maps/place/MYX+BEER+METROPOLITANA/@-15.8688465,-48.0363189,13z/data=!4m10!1m2!2m1!1smyxbeer!3m6!1s0x935a2fc3311751c3:0x6d6f59115514c3be!8m2!3d-15.8800288!4d-47.97425',
+  },
+  {
+    id: 3,
+    name: 'MYX TABACARIA',
+    emoji: '🚬',
+    lat: -15.8719128,
+    lng: -47.9710089,
+    maps: 'https://www.google.com/maps/place/MYX+TABACARIA/@-15.871913,-47.971679,19z/data=!4m9!1m2!2m1!1smyxbeer!3m5!1s0x935a2e575987c78f:0x28fcc31d3370e9f0!8m2!3d-15.8719128!4d-47.9710089',
+  },
+]
+
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
+  const R = 6371
+  const dLat = ((lat2 - lat1) * Math.PI) / 180
+  const dLng = ((lng2 - lng1) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
 
 const COMBO_CATEGORIAS = ['Todos', 'Clássicos', 'Churrasco', 'Domingo', 'Emergência', 'Romance', 'Balada', 'Premium']
 
@@ -101,8 +138,30 @@ export default function MyxBeerDashboard() {
   const [comboTab, setComboTab] = useState('Todos')
   const [scrolled, setScrolled] = useState(false)
   const [hoveredCard, setHoveredCard] = useState<number | null>(null)
+  const [showLocation, setShowLocation] = useState(false)
+  const [nearestStore, setNearestStore] = useState<number | null>(null)
+  const [geoStatus, setGeoStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
 
   const closePanel = () => setPanel({ type: 'none' })
+
+  const handleFindNearest = () => {
+    if (!navigator.geolocation) { setGeoStatus('error'); return }
+    setGeoStatus('loading')
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords
+        let minDist = Infinity
+        let nearest = STORES[0].id
+        STORES.forEach((s) => {
+          const d = haversineKm(latitude, longitude, s.lat, s.lng)
+          if (d < minDist) { minDist = d; nearest = s.id }
+        })
+        setNearestStore(nearest)
+        setGeoStatus('done')
+      },
+      () => setGeoStatus('error'),
+    )
+  }
 
   // Header becomes visible on scroll
   useEffect(() => {
@@ -190,16 +249,9 @@ export default function MyxBeerDashboard() {
 
       {/* ── HEADER — transparent at top, solid on scroll ── */}
       <header className={`myx-header ${scrolled ? 'myx-header-scrolled' : 'myx-header-top'}`}>
-        <div className="myx-download">
-          <span className="myx-download-emoji" aria-hidden>📱</span>
-          <span className="myx-download-text">Baixar o app</span>
-        </div>
         <div className="myx-cert">
-          <a aria-label="Instagram" className="myx-icon" href="#">
+          <a aria-label="Instagram MYX BEER" className="myx-icon" href="https://instagram.com" target="_blank" rel="noopener noreferrer">
             <Instagram size={24} />
-          </a>
-          <a aria-label="Localização" className="myx-icon" href="#">
-            <MapPin size={24} />
           </a>
         </div>
       </header>
@@ -244,7 +296,88 @@ export default function MyxBeerDashboard() {
         <div className="myx-scroll-arrow" aria-hidden>
           <ChevronDown size={22} strokeWidth={2.5} />
         </div>
+
+        {/* ── DOIS MÓDULOS: APP + LOCALIZAÇÃO ── */}
+        <div className="myx-hero-modules">
+          {/* Módulo: Baixar App */}
+          <a
+            className="myx-hero-module myx-module-app"
+            href="#"
+            onClick={(e) => e.preventDefault()}
+          >
+            <span className="myx-hmod-icon"><Smartphone size={22} /></span>
+            <span className="myx-hmod-title">Baixar o App</span>
+            <span className="myx-hmod-sub">Peça direto pelo app</span>
+          </a>
+
+          {/* Módulo: Localização */}
+          <button
+            type="button"
+            className="myx-hero-module myx-module-loc"
+            onClick={() => { setShowLocation(true); setGeoStatus('idle'); setNearestStore(null) }}
+          >
+            <span className="myx-hmod-icon"><MapPin size={22} /></span>
+            <span className="myx-hmod-title">Localização</span>
+            <span className="myx-hmod-sub">Encontre a loja mais próxima</span>
+          </button>
+        </div>
       </section>
+
+      {/* ── PAINEL DE LOCALIZAÇÃO ── */}
+      {showLocation && (
+        <>
+          <div className="myx-cart-backdrop" onClick={() => setShowLocation(false)} />
+          <aside className="myx-combo-panel myx-loc-panel">
+            <header className="myx-combo-header">
+              <div>
+                <span className="myx-panel-title">📍 Nossas Lojas</span>
+                <p className="myx-panel-subtitle">Qual MYX BEER fica mais perto de você?</p>
+              </div>
+              <button className="myx-cart-close" onClick={() => setShowLocation(false)}><X size={18} /></button>
+            </header>
+            <div className="myx-combo-body">
+              <button
+                type="button"
+                className="myx-button myx-geo-btn"
+                onClick={handleFindNearest}
+                disabled={geoStatus === 'loading'}
+              >
+                <Navigation size={14} />
+                {geoStatus === 'loading' ? 'Localizando...' : 'Encontrar a mais próxima de mim'}
+              </button>
+              {geoStatus === 'error' && (
+                <p className="myx-geo-error">Não foi possível obter sua localização. Selecione manualmente abaixo.</p>
+              )}
+              <ul className="myx-store-list">
+                {STORES.map((store) => (
+                  <li
+                    key={store.id}
+                    className={`myx-store-item ${nearestStore === store.id ? 'myx-store-nearest' : ''}`}
+                  >
+                    <div className="myx-store-info">
+                      <span className="myx-store-emoji">{store.emoji}</span>
+                      <div>
+                        <h3 className="myx-store-name">{store.name}</h3>
+                        {nearestStore === store.id && (
+                          <span className="myx-store-badge">✅ Mais próxima de você</span>
+                        )}
+                      </div>
+                    </div>
+                    <a
+                      href={store.maps}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="myx-button pill-button myx-store-btn"
+                    >
+                      Ver no mapa
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </aside>
+        </>
+      )}
 
       {/* ── VERTICAL CARD LIST ── */}
       <div className="myx-module">
